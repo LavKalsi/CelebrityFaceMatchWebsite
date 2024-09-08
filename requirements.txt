@@ -14,4 +14,4 @@ h5py==2.10.0
 scipy==1.4.1
 pyarrow==17.0.0
 pydeck==0.9.1
-opencv>=3.1
+opencv-python>=2.*

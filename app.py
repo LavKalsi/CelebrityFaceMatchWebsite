@@ -43,6 +43,10 @@ model = VGGFace(model='resnet50', include_top=False, input_shape=(224,224,3), po
 feature_list = pickle.load(open('embedding.plk', 'rb'))
 filenames = pickle.load(open('filenames.pkl', 'rb'))
 
+# Initialize lists to store uploaded images and predicted celebrity images
+uploaded_images = []
+predicted_celebrity_images = []
+
 def extract_features(image, model, detector):
     try:
         img = np.array(image)
@@ -94,7 +98,10 @@ if uploaded_image is not None:
     # Load the image
     image = Image.open(uploaded_image)
     display_image = image
-
+    
+    # Append uploaded image to list
+    uploaded_images.append(display_image)
+    
     # Extract the features
     features = extract_features(image, model, detector)
     if features is not None:
@@ -107,6 +114,9 @@ if uploaded_image is not None:
             # Load image from URL
             result_image = load_image_from_url(image_url)
             if result_image:
+                # Append predicted celebrity image to list
+                predicted_celebrity_images.append(result_image)
+
                 predicted_actor = " ".join(filenames[index_pos].split('\\')[1].split('_'))
                 # Display
                 col1, col2 = st.columns(2)
@@ -116,4 +126,15 @@ if uploaded_image is not None:
                     st.image(display_image, width=300, use_column_width=True, caption="Uploaded Image")
                 with col2:
                     st.markdown(f'<div class="stHeader">Seems like {predicted_actor}</div>', unsafe_allow_html=True)
-                    st.image(filenames[index_pos], width=300, caption="Predicted Celebrity")
+                    st.image(result_image, width=300, caption="Predicted Celebrity")
+
+# Optionally, you can display the stored images later on
+if uploaded_images:
+    st.markdown('<div class="stHeader">History of Uploaded Images</div>', unsafe_allow_html=True)
+    for i, img in enumerate(uploaded_images):
+        st.image(img, width=100, caption=f"Uploaded Image {i+1}")
+
+if predicted_celebrity_images:
+    st.markdown('<div class="stHeader">History of Predicted Celebrity Images</div>', unsafe_allow_html=True)
+    for i, img in enumerate(predicted_celebrity_images):
+        st.image(img, width=100, caption=f"Predicted Celebrity {i+1}")

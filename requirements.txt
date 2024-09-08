@@ -1,10 +1,10 @@
 opencv-python==4.10.0.84
 mtcnn==0.1.0
+opencv-python-headless>=4.10.0.84
 keras==2.4.3
 keras-vggface==0.6
 keras_applications==1.0.8
 streamlit
 protobuf==3.20.*
 scikit-learn
-opencv-python-headless>=4.10.0.84
 tensorflow==2.3.1

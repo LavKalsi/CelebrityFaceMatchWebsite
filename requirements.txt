@@ -6,4 +6,5 @@ streamlit
 opencv-python>=4.10.0.84
 protobuf==3.20.*
 scikit-learn
+opencv-python-headless==4.10.0.84
 tensorflow==2.3.1

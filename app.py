@@ -4,10 +4,10 @@ import pickle
 from sklearn.metrics.pairwise import cosine_similarity
 import streamlit as st
 from PIL import Image
-import os
+import numpy as np
 import cv2
 from mtcnn import MTCNN
-import numpy as np
+import io
 
 st.markdown("""
     <style>
@@ -84,19 +84,9 @@ model = VGGFace(model='resnet50', include_top=False, input_shape=(224,224,3), po
 feature_list = pickle.load(open('embedding.plk', 'rb'))
 filenames = pickle.load(open('filenames.pkl', 'rb'))
 
-def save_uploaded_image(uploaded_image):
+def extract_features(image, model, detector):
     try:
-        upload_path = os.path.join('uploads', uploaded_image.name)
-        with open(upload_path, 'wb') as f:
-            f.write(uploaded_image.getbuffer())
-        return upload_path
-    except Exception as e:
-        st.error(f"Error saving file: {e}")
-        return None
-
-def extract_features(img_path, model, detector):
-    try:
-        img = cv2.imread(img_path)
+        img = np.array(image)
         results = detector.detect_faces(img)
 
         if not results:
@@ -106,7 +96,7 @@ def extract_features(img_path, model, detector):
         x, y, width, height = results[0]['box']
         face = img[y:y + height, x:x + width]
 
-        #  extract its features
+        # extract its features
         image = Image.fromarray(face)
         image = image.resize((224, 224))
 
@@ -133,25 +123,23 @@ st.title('Celebrity Face Match Website')
 uploaded_image = st.file_uploader('Choose an image')
 
 if uploaded_image is not None:
-    # save the image in a directory
-    upload_path = save_uploaded_image(uploaded_image)
-    if upload_path:
-        # load the image
-        display_image = Image.open(upload_path)
+    # Load the image
+    image = Image.open(uploaded_image)
+    display_image = image
 
-        # extract the features
-        features = extract_features(upload_path, model, detector)
-        if features is not None:
-            # recommend
-            index_pos = recommend(feature_list, features)
-            if index_pos is not None:
-                predicted_actor = " ".join(filenames[index_pos].split('\\')[1].split('_'))
-                # display
-                col1, col2 = st.columns(2)
+    # Extract the features
+    features = extract_features(image, model, detector)
+    if features is not None:
+        # Recommend
+        index_pos = recommend(feature_list, features)
+        if index_pos is not None:
+            predicted_actor = " ".join(filenames[index_pos].split('\\')[1].split('_'))
+            # Display
+            col1, col2 = st.columns(2)
 
-                with col1:
-                    st.header('Your Image')
-                    st.image(display_image, use_column_width=True)
-                with col2:
-                    st.header("You Look Like " + predicted_actor)
-                    st.image(filenames[index_pos], width=300)
+            with col1:
+                st.header('Your Image')
+                st.image(display_image, use_column_width=True)
+            with col2:
+                st.header("You Look Like " + predicted_actor)
+                st.image(filenames[index_pos], width=300)

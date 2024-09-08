@@ -5,7 +5,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 import streamlit as st
 from PIL import Image
 import numpy as np
+import cv2
 from mtcnn import MTCNN
+import io
 
 st.markdown("""
     <style>

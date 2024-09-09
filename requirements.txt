@@ -90,5 +90,3 @@ werkzeug==3.0.4
 wheel==0.44.0
 wrapt==1.16.0
 zipp==3.20.1
-face_recognition>=0.3.0
-dlib>=19.7

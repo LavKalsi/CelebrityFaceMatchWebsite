@@ -15,8 +15,50 @@ import os
 st.markdown("""
     <style>
     .stApp {
-        background-color: #f0f2f6;
         font-family: 'Arial', sans-serif;
+        padding-top: 0px;
+        padding-left: 0px;
+        padding-right: 0px;
+        margin: 0px;
+    }
+    .st-emotion-cache-1vt4y43 {
+    width: 150px;
+    padding: 0;
+    border: none;
+    transform: rotate(5deg);
+    transform-origin: center;
+    font-family: "Gochi Hand", cursive;
+    text-decoration: none;
+    font-size: 15px;
+    cursor: pointer;
+    padding-bottom: 3px;
+    border-radius: 5px;
+    box-shadow: 0 2px 0 #494a4b;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background-color: #5cdb95;
+    }
+    .st-emotion-cache-1vt4y43 span {
+    background: #f1f5f8;
+    display: block;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    border: 2px solid #494a4b;
+    }
+    .st-emotion-cache-1vt4y43:active {
+    transform: translateY(5px);
+    padding-bottom: 0px;
+    outline: 0;
+    }
+    .block-container {
+        padding-top: 4rem;
+        padding-bottom: 0rem;
+        padding-left: 0rem;
+        padding-right: 0rem;
+        margin:0px;
+        }
+    body {
+        margin: 0;
+        padding: 0;
     }
     .stTitle {
         color: #2C3E50;
@@ -28,7 +70,8 @@ st.markdown("""
         color: #3498DB;
         font-weight: bold;
     }
-    img {
+    .stImage {
+        padding: 20px;
         border-radius: 10px;
         box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
     }
@@ -112,8 +155,8 @@ if uploaded_image is not None:
                 col1, col2 = st.columns(2)
 
                 with col1:
-                    st.markdown('<div class="stHeader">Your Uploaded Image</div>', unsafe_allow_html=True)
-                    st.image(display_image, width=300, use_column_width=True, caption="Uploaded Image")
+                    st.header('Your Image')
+                    st.image(display_image, use_column_width=True)
                 with col2:
-                    st.markdown(f'<div class="stHeader">Seems like {predicted_actor}</div>', unsafe_allow_html=True)
-                    st.image(filenames[index_pos], width=300, caption="Predicted Celebrity")
+                    st.header("You Look Like " + predicted_actor)
+                    st.image(result_image, width=300)

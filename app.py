@@ -5,80 +5,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 import streamlit as st
 from PIL import Image
 import numpy as np
-import cv2
 from mtcnn import MTCNN
-import requests
-from io import BytesIO
 import os
 
-# CSS styling for Streamlit app
-st.markdown("""
-    <style>
-    .stApp {
-        font-family: 'Arial', sans-serif;
-        padding-top: 0px;
-        padding-left: 0px;
-        padding-right: 0px;
-        margin: 0px;
-    }
-    .st-emotion-cache-1vt4y43 {
-    width: 150px;
-    padding: 0;
-    border: none;
-    transform: rotate(5deg);
-    transform-origin: center;
-    font-family: "Gochi Hand", cursive;
-    text-decoration: none;
-    font-size: 15px;
-    cursor: pointer;
-    padding-bottom: 3px;
-    border-radius: 5px;
-    box-shadow: 0 2px 0 #494a4b;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    background-color: #5cdb95;
-    }
-    .st-emotion-cache-1vt4y43 span {
-    background: #f1f5f8;
-    display: block;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    border: 2px solid #494a4b;
-    }
-    .st-emotion-cache-1vt4y43:active {
-    transform: translateY(5px);
-    padding-bottom: 0px;
-    outline: 0;
-    }
-    .block-container {
-        padding-top: 4rem;
-        padding-bottom: 0rem;
-        padding-left: 0rem;
-        padding-right: 0rem;
-        margin:0px;
-        }
-    body {
-        margin: 0;
-        padding: 0;
-    }
-    .stTitle {
-        color: #2C3E50;
-        text-align: center;
-        font-weight: bold;
-        font-size: 2.5em;
-    }
-    .stHeader {
-        color: #3498DB;
-        font-weight: bold;
-    }
-    .stImage {
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
-    }
-    </style>
-""", unsafe_allow_html=True)
 
-# Initialize face detector and model
 detector = MTCNN()
 model = VGGFace(model='resnet50', include_top=False, input_shape=(224,224,3), pooling='avg')
 
@@ -120,15 +50,6 @@ def recommend(feature_list, features):
         st.error(f"Error calculating similarity: {e}")
         return None
 
-def load_image_from_url(url):
-    try:
-        response = requests.get(url)
-        img = Image.open(BytesIO(response.content))
-        return img
-    except Exception as e:
-        st.error(f"Error downloading image from URL: {e}")
-        return None
-
 st.title('Celebrity Face Match Website')
 
 uploaded_image = st.file_uploader('Choose an image')
@@ -144,19 +65,23 @@ if uploaded_image is not None:
         # Recommend
         index_pos = recommend(feature_list, features)
         if index_pos is not None:
-            # Prepare URL
-            image_url = f"https://raw.githubusercontent.com/LavKalsi/CelebrityFaceMatchWebsite/main/TrainingData/{'/'.join(filenames[index_pos].split(os.sep)[-2:])}"
+            predicted_actor = " ".join(filenames[index_pos].split('\\')[1].split('_'))
+            
+            # Construct local file path
+            matched_image_path = filenames[index_pos]
+            if os.path.isfile(matched_image_path):
+                matched_image = Image.open(matched_image_path)
+            else:
+                st.error(f"Image file not found: {matched_image_path}")
+                matched_image = None
 
-            # Load image from URL
-            result_image = load_image_from_url(image_url)
-            if result_image:
-                predicted_actor = " ".join(filenames[index_pos].split('\\')[1].split('_'))
-                # Display
-                col1, col2 = st.columns(2)
+            # Display
+            col1, col2 = st.columns(2)
 
-                with col1:
-                    st.header('Your Image')
-                    st.image(display_image, use_column_width=True)
-                with col2:
-                    st.header("You Look Like " + predicted_actor)
-                    st.image(result_image, width=300)
+            with col1:
+                st.header('Your Image')
+                st.image(display_image, use_column_width=True)
+            with col2:
+                st.header("You Look Like " + predicted_actor)
+                if matched_image:
+                    st.image(matched_image, width=300)

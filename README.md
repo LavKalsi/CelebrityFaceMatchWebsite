@@ -13,7 +13,7 @@ A web-based application that matches your uploaded image to a Bollywood celebrit
 
 | Feature            | Screenshot      |
 |--------------------|-----------------|
-| Preview Of Website        | <img src="https://github.com/LavKalsi/CelebrityFaceMatchWebsite/blob/main/Screenshot/image.png" width="800" height="600"/>|
+| Preview Of Website        | <img src="https://github.com/LavKalsi/CelebrityFaceMatchWebsite/blob/main/Screenshot/image.png" width="711" height="400"/>|
 
 > *(Replace `#` with actual image links after uploading screenshots)*
 

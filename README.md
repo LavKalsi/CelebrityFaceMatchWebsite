@@ -15,8 +15,6 @@ A web-based application that matches your uploaded image to a Bollywood celebrit
 |--------------------|-----------------|
 | Preview Of Website        | <img src="https://github.com/LavKalsi/CelebrityFaceMatchWebsite/blob/main/Screenshot/image.png" width="711" height="400"/>|
 
-> *(Replace `#` with actual image links after uploading screenshots)*
-
 ## Installation
 
 1. Clone the repository:

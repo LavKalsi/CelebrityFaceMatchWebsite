@@ -5,12 +5,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 import streamlit as st
 from PIL import Image
 import numpy as np
-import face_recognition
+import cv2
+from mtcnn import MTCNN
+import io
 import requests
-from io import BytesIO
-import os
 
-# CSS styling for Streamlit app
 st.markdown("""
     <style>
     .stApp {
@@ -20,6 +19,7 @@ st.markdown("""
         padding-right: 0px;
         margin: 0px;
     }
+    /* From Uiverse.io by mi-series */ 
     .st-emotion-cache-1vt4y43 {
     width: 150px;
     padding: 0;
@@ -36,6 +36,7 @@ st.markdown("""
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     background-color: #5cdb95;
     }
+
     .st-emotion-cache-1vt4y43 span {
     background: #f1f5f8;
     display: block;
@@ -43,11 +44,13 @@ st.markdown("""
     border-radius: 5px;
     border: 2px solid #494a4b;
     }
+
     .st-emotion-cache-1vt4y43:active {
     transform: translateY(5px);
     padding-bottom: 0px;
     outline: 0;
     }
+
     .block-container {
         padding-top: 4rem;
         padding-bottom: 0rem;
@@ -77,35 +80,35 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Initialize face model
+detector = MTCNN()
 model = VGGFace(model='resnet50', include_top=False, input_shape=(224,224,3), pooling='avg')
 
 # Load feature list and filenames
 feature_list = pickle.load(open('embedding.plk', 'rb'))
 filenames = pickle.load(open('filenames.pkl', 'rb'))
 
-def extract_features(image, model):
+# Define GitHub URL base
+GITHUB_URL_BASE = "https://raw.githubusercontent.com/LavKalsi/CelebrityFaceMatchWebsite/main/TrainingData/"
+
+def extract_features(image, model, detector):
     try:
-        # Convert PIL image to a numpy array
         img = np.array(image)
-        
-        # Detect face locations using face_recognition
-        face_locations = face_recognition.face_locations(img)
-        
-        if not face_locations:
+        results = detector.detect_faces(img)
+
+        if not results:
             st.error("No face detected in the image.")
             return None
 
-        top, right, bottom, left = face_locations[0]
-        face = img[top:bottom, left:right]
+        x, y, width, height = results[0]['box']
+        face = img[y:y + height, x:x + width]
 
-        # Resize and process the face image
-        face_image = Image.fromarray(face).resize((224, 224))
-        face_array = np.asarray(face_image).astype('float32')
+        # extract its features
+        image = Image.fromarray(face)
+        image = image.resize((224, 224))
+
+        face_array = np.asarray(image).astype('float32')
         expanded_img = np.expand_dims(face_array, axis=0)
         preprocessed_img = preprocess_input(expanded_img)
-        
-        # Extract features using VGGFace
         result = model.predict(preprocessed_img).flatten()
         return result
     except Exception as e:
@@ -121,13 +124,16 @@ def recommend(feature_list, features):
         st.error(f"Error calculating similarity: {e}")
         return None
 
-def load_image_from_url(url):
+def download_image(url):
     try:
         response = requests.get(url)
-        img = Image.open(BytesIO(response.content))
-        return img
+        if response.status_code == 200:
+            return Image.open(io.BytesIO(response.content))
+        else:
+            st.error(f"Failed to download image from {url}")
+            return None
     except Exception as e:
-        st.error(f"Error downloading image from URL: {e}")
+        st.error(f"Error downloading image: {e}")
         return None
 
 st.title('Celebrity Face Match Website')
@@ -140,24 +146,24 @@ if uploaded_image is not None:
     display_image = image
 
     # Extract the features
-    features = extract_features(image, model)
+    features = extract_features(image, model, detector)
     if features is not None:
         # Recommend
         index_pos = recommend(feature_list, features)
         if index_pos is not None:
-            # Prepare URL
-            image_url = f"https://raw.githubusercontent.com/LavKalsi/CelebrityFaceMatchWebsite/main/TrainingData/{'/'.join(filenames[index_pos].split(os.sep)[-2:])}"
+            predicted_actor = " ".join(filenames[index_pos].split('\\')[1].split('_'))
+            
+            # Construct the URL for the matched image
+            image_url = GITHUB_URL_BASE + filenames[index_pos].replace('\\', '/').split('/')[-1]
+            matched_image = download_image(image_url)
 
-            # Load image from URL
-            result_image = load_image_from_url(image_url)
-            if result_image:
-                predicted_actor = " ".join(filenames[index_pos].split('\\')[1].split('_'))
-                # Display
-                col1, col2 = st.columns(2)
+            # Display
+            col1, col2 = st.columns(2)
 
-                with col1:
-                    st.header('Your Image')
-                    st.image(display_image, use_column_width=True)
-                with col2:
-                    st.header("You Look Like " + predicted_actor)
-                    st.image(result_image, width=300)
+            with col1:
+                st.header('Your Image')
+                st.image(display_image, use_column_width=True)
+            with col2:
+                st.header("You Look Like " + predicted_actor)
+                if matched_image:
+                    st.image(matched_image, width=300)

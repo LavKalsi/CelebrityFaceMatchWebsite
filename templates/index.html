@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celebrity Face Match</title>
+</head>
+<body>
+    <h1>Celebrity Face Match</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <label for="image">Upload Image:</label>
+        <input type="file" name="image" accept="image/*" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <div id="result">
+        <!-- Result will be shown here -->
+    </div>
+
+    <script>
+        const form = document.querySelector('form');
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            const resultDiv = document.getElementById('result');
+            if (data.error) {
+                resultDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+            } else {
+                resultDiv.innerHTML = `<p>${data.message}</p><img src="${data.image_url}" alt="Celebrity Image" width="300" />`;
+            }
+        }
+    </script>
+</body>
+</html>
